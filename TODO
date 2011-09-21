@@ -1,9 +1,9 @@
-Using socket.io for server?
+- Allow ip and port configuration
+- Improving client UI
+  -> I'm checking if there are any designers interested: https://twitter.com/andreascreten/status/116446969681027072
 
-Improving client UI
+- Test more browsers
+  -> Works fine on Chrome for me (Andreas Creten)
 
-Allow ip and port configuration
-
-Test more browsers
-
-Mobile client version
+- Mobile client version
+  -> This should be part of the new UI (Andreas Creten)
