@@ -48,7 +48,14 @@ var server = io.of('/server').on('connection', function (socket) {
 });
 
 // Create a new namespace for the mirrors
-var mirror = io.of('/mirror').on('connection', function (socket) {});
+var mirror = io.of('/mirror').on('connection', function (socket) {
+    // Send the current satus to the mirror if he asks for it
+    socket.on('update status', function() {
+        debug('Mirror: Asking status update');
+        
+        socket.emit('status', current_state.status);
+    });
+});
 
 // Create a new namespace for the clients
 var client = io.of('/client').on('connection', function (socket) {
