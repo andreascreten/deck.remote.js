@@ -103,6 +103,7 @@ var DeckRemoteWrapper = {
             });
         }
     },
+    
     // A mirror is a passive session: no data is send to the server
     mirror: {
         // Holds an instance of the socket
@@ -145,6 +146,7 @@ var DeckRemoteWrapper = {
             }
         }
     },
+    
     // Resize the deck
     resize: function(width, height) {
         // Resize the body to match the body of the master deck
@@ -169,11 +171,3 @@ var DeckRemoteWrapper = {
         }
     }
 };
-
-// Initialize the Remote
-$(function() {
-    new DeckRemote({
-        host: 'localhost',
-        port: 8333
-    });
-});
