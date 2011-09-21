@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <style type="text/css">
 * { margin: 0; padding:0; border: 0; }
 html, body {
@@ -65,65 +64,36 @@ iframe#next_frame {
 
 </style>
 <script src="jquery.js"></script>
+<script src="http://localhost:8333/socket.io/socket.io.js"></script>
 <script>
-try {
-if ('WebSocket' in window == false && 'MozWebSocket' in window) window.WebSocket = window.MozWebSocket;
-
-var remoteClient = {
-	myWebSocket: null,
-	ip: '127.0.0.1',
-	port: '8080',
-	reconnectAttempt: null,
-	reconnect: function() {
-		if (this.myWebSocket != null && this.myWebSocket.readyState <= WebSocket.OPEN) return;
-		if (this.reconnectAttempt) return;
-		var $this = this;
-		this.reconnectAttempt = setTimeout(function() { $this.init() }, 1000);
-	},
-	init: function() {
-		this.reconnectAttempt = null;
-
-		var $this = this;
-		try {
-			this.myWebSocket = new WebSocket("ws://" + this.ip + ":" + this.port);
-		} catch (e) {
-			this.reconnect();
-			return;
-		}
-		this.myWebSocket.onopen = function(evt) {
-			$this.myWebSocket.send('{"type":"identify", "data":"client"}');
-		};
-		this.myWebSocket.onmessage = function(evt) {
-			var data = jQuery.parseJSON(evt.data);
-			if (data.type == 'status') {
-				$('#current-slide').text(data.data.currentSlide + 1);
-				$('#notes').text(data.data.notes);
-			}
-			if (data.type == 'url') {
-				$this.url = data.data;
-				$('#cur_frame').attr('src', $this.url + '#mirror+0');
-				$('#next_frame').attr('src', $this.url + '#mirror+1');
-			}
-		};
-		this.myWebSocket.onclose = function(evt) {
-			$this.reconnect();
-		};
-	},
-	next: function() {
-		this.myWebSocket.send('{"type":"command", "data":"next"}');
-	},
-	prev: function() {
-		this.myWebSocket.send('{"type":"command", "data":"prev"}');
-	},
-}
-remoteClient.init();
-} catch (e) { alert(e); }
+    // Connect as a server
+    var server = io.connect('http://localhost:8333/server');
+    
+    // If connected to the server, start listening
+    server.on('connect', function () {
+        // Ask for a status update
+        server.emit('update status');
+        
+        // When the url changes, update the mirrors
+        server.on('url', function (url) {
+            $('#cur_frame').attr('src', url + '#mirror+0');
+            $('#next_frame').attr('src', url + '#mirror+1');
+        });
+        
+        // When the status changes, update the interface
+        server.on('status', function(status) {
+            $('#current-slide').text(status.current + 1);
+            $('#notes').text(status.notes);
+        });
+    });
+</script>
+<script>
 $(function() {
-	$('#next').click(function() { remoteClient.next(); });
-	$('#prev').click(function() { remoteClient.prev(); });
+	$('#next').click(function() { server.emit('next'); });
+	$('#prev').click(function() { server.emit('prev'); });
 	$(document).keyup(function(e) {
-		if (e.keyCode == 37) { remoteClient.prev(); }
-		if (e.keyCode == 39) { remoteClient.next(); }
+		if (e.keyCode == 37) { server.emit('prev'); }
+		if (e.keyCode == 39) { server.emit('next'); }
 	});
 });
 var clock = {

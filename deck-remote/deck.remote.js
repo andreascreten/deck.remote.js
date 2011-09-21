@@ -13,96 +13,63 @@ accordingly). The form-showing state is indicated by the presence of a class on
 the deck container.
 */
 (function($, deck, undefined) {
-	var $d = $(document);
-	
-	/*
-	jQuery.deck('remoteInit')
-	
-	Starts listening for remotes.
-	*/
-
-	var remoteServer = {
-		currentSlide: 0,
-		myWebSocket: null,
-		ip: '127.0.0.1',
-		port: '8080',
-		reconnectAttempt: null,
-		reconnect: function() {
-			if (this.myWebSocket != null && this.myWebSocket.readyState <= WebSocket.OPEN) return;
-			if (this.reconnectAttempt) return;
-			var $this = this;
-			this.reconnectAttempt = setTimeout(function() { $this.init() }, 1000);
-		},
-		init: function() {
-			this.reconnectAttempt = null;
-
-			if ('WebSocket' in window == false && 'MozWebSocket' in window) window.WebSocket = window.MozWebSocket;
-
-			try {
-				this.myWebSocket = new WebSocket("ws://" + this.ip + ":" + this.port);
-			} catch (e) {
-				this.reconnect();
-				return;
-			}
-
-			if (location.href.indexOf('#mirror') != -1) {
-				this.initMirror(parseInt(location.href.substr(7+location.href.indexOf('#mirror'))));
-				return;
-			}
-			$this = this;
-			this.myWebSocket.onopen = function(evt) {
-				$this.myWebSocket.send('{"type":"identify", "data":"server", "url":"' + location.href + '"}');
-				$this.sendStatus();
-			};
-			this.myWebSocket.onmessage = function(evt) {
-				try {
-					var data = jQuery.parseJSON(evt.data);
-					if (data.type == 'command') {
-						if (data.data == 'next') { $.deck('next'); }
-						if (data.data == 'prev') { $.deck('prev'); }
-					}
-				} catch (e) {
-				}
-			};
-			this.myWebSocket.onclose = function(evt) {
-				$this.reconnect();
-			};
-		},
-		initMirror: function(offset) {
-			$this = this;
-			this.myWebSocket.onopen = function(evt) {
-				$this.myWebSocket.send('{"type":"identify", "data":"servermirror"}');
-			};
-			this.myWebSocket.onmessage = function(evt) {
-				try {
-					var data = jQuery.parseJSON(evt.data);
-					if (data.type == 'status') {
-						$[deck]('go', data.data.currentSlide + offset);
-					}
-				} catch (e) {
-				}
-			};
-			this.myWebSocket.onclose = function(evt) {
-				$this.reconnect();
-			};
-			this.sendStatus = function() {};
-		},
-		sendStatus: function() {
-			var notes = $('.hidden-notes', $[deck]('getSlide', this.currentSlide)).text();
-			this.myWebSocket.send(JSON.stringify({"type":"status", "data": { "currentSlide": this.currentSlide, "notes":  notes } }));
-		}
-	};
-	$[deck]('extend', 'remoteInit', function() {
-		try {
-			remoteServer.init();
-		} catch (e) {
-		}
-	});
-
-	$d.bind('deck.change', function(e, from, to) {
-		remoteServer.currentSlide = to;
-		remoteServer.sendStatus();
-	});
-	jQuery.deck('remoteInit');
+    var current_slide = 0;
+    var $d = $(document);
+    
+    // Check if it's a mirror
+    if (window.location.href.indexOf('#mirror') != -1) {
+        // Check the offset of the mirror
+        var offset = parseInt(window.location.href.substr(7 + window.location.href.indexOf('#mirror')));
+        
+        // Connect as a mirror
+        var mirror = io.connect('http://localhost:8333/mirror');
+        
+        // If connected to the server, start listening
+        mirror.on('connect', function() {
+            // Listen for status updates
+            mirror.on('status', function(data) {
+                // Go to the right slide
+                $.deck('go', data.current + offset);
+            });
+        });
+    }
+    else {
+        // Connect as a client
+        var client = io.connect('http://localhost:8333/client');
+        
+        // If connected to the server, start listening
+        client.on('connect', function() {
+            // Send teh url of the page
+            client.emit('url', window.location.href);
+            
+            // Listen for the next command
+            client.on('next', function() {
+                // Go to the next slide
+                $.deck('next');
+            });
+            
+            // Listen for the prev command
+            client.on('prev', function() {
+                // Go to the previous slide
+                $.deck('prev');
+            });
+        });
+        
+        // Change the current slide number
+        $d.bind('deck.change', function(e, from, to) {
+            current_slide = to;
+        });
+        
+        // Send the status of the client to the server
+        $d.bind('deck.change deck.init', function() {
+            // Check for notes
+            var notes = $('.hidden-notes', $[deck]('getSlide', current_slide)).text();
+            
+            // Send the status to the server
+            client.emit('status', {
+                current: current_slide,
+                notes: notes
+            });
+        });
+    }
 })(jQuery, 'deck');
-
