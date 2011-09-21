@@ -4,3 +4,6 @@
 [submodule "example/deck.js"]
 	path = example/deck.js
 	url = https://github.com/imakewebthings/deck.js.git
+[submodule "deck-remote-server/socket.io"]
+	path = deck-remote-server/socket.io
+	url = https://github.com/LearnBoost/socket.io.git
