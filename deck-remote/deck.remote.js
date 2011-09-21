@@ -57,13 +57,13 @@ var DeckRemoteWrapper = {
             client.on('connect', function() {
                 // Send the url of the page
                 client.emit('url', window.location.href);
-
+                
                 // Listen for the next command
                 client.on('next', function() {
                     // Go to the next slide
                     $.deck('next');
                 });
-
+                
                 // Listen for the prev command
                 client.on('prev', function() {
                     // Go to the previous slide
@@ -91,7 +91,7 @@ var DeckRemoteWrapper = {
         sendStatus: function() {
             // Check for notes
             var notes = $('.hidden-notes', $.deck('getSlide', DeckRemoteWrapper.current_slide)).text();
-
+            
             // Send the status to the server
             DeckRemoteWrapper.client.__socket.emit('status', {
                 current: DeckRemoteWrapper.current_slide,
@@ -115,7 +115,7 @@ var DeckRemoteWrapper = {
             
             // Store the reference to the socket
             DeckRemoteWrapper.mirror.__socket = mirror;
-
+            
             // If connected to the server, start listening
             mirror.on('connect', function() {
                 // Ask for a status update
@@ -128,7 +128,7 @@ var DeckRemoteWrapper = {
                 mirror.on('status', function(data) {
                     // Check the offset of the mirror
                     var offset = parseInt(window.location.href.substr(7 + window.location.href.indexOf('#mirror')));
-
+                    
                     // Go to the right slide
                     $.deck('go', data.current + offset);
                     
@@ -149,7 +149,7 @@ var DeckRemoteWrapper = {
     resize: function(width, height) {
         // Resize the body to match the body of the master deck
         $('body').width(width).height(height);
-
+        
         // Calculate the ratio between the window and document width
         var scale = $(window).width() / $(document).width();
         
@@ -162,16 +162,18 @@ var DeckRemoteWrapper = {
             '-moz-transform': 'scale(' + scale + ')',
             '-moz-transform-origin': 'left top'
         });
+        
+        // Little trick for IE
         if (navigator.appVersion.match(/MSIE/)) {
             $('body').css('zoom', 100 * scale); 
         }
-    },
+    }
 };
 
 // Initialize the Remote
 $(function() {
     new DeckRemote({
-        host: '10.0.1.3',
+        host: 'localhost',
         port: 8333
     });
 });
