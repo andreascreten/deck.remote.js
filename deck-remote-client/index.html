@@ -1,106 +1,30 @@
-<!DOCTYPE html>
-<link rel="stylesheet" href="style.css" type="text/css" media="screen" title="no title" charset="utf-8">
-<script src="jquery.js"></script>
-<script src="http://localhost:8333/socket.io/socket.io.js"></script>
-<script>
-    var config = {
-        host: 'localhost',
-        port: 8333,
-        keys: {
-            // enter, space, page down, right arrow, down arrow,
-            next: [13, 32, 34, 39, 40],
-            // backspace, page up, left arrow, up arrow
-            previous: [8, 33, 37, 38]
-        }
-    };
-
-    // Connect as a server
-    var server = io.connect('http://' + config.host + ':' + config.port + '/server');
-    
-    // If connected to the server, start listening
-    server.on('connect', function () {
-        // Ask for a status update
-        server.emit('update status');
-        
-        // When the url changes, update the mirrors
-        server.on('url', function (url) {
-            $('#cur_frame').attr('src', url + '#mirror+0');
-            $('#next_frame').attr('src', url + '#mirror+1');
-        });
-        
-        // When the status changes, update the interface
-        server.on('status', function(status) {
-            $('#current-slide').text(status.current + 1);
-            $('#notes').text(status.notes);
-        });
-    });
-
-    $(function() {    
-        $(document).bind('keydown', function(e) {
-            if (e.which === config.keys.next || $.inArray(e.which, config.keys.next) > -1) {
-                server.emit('next');
-                e.preventDefault();
-            }
-            else if (e.which === config.keys.previous || $.inArray(e.which, config.keys.previous) > -1) {
-                server.emit('prev');
-                e.preventDefault();
-            }
-        });
-    
-        $('#next').click(function() {
-            server.emit('next');
-        });
-        $('#prev').click(function() {
-            server.emit('prev');
-        });
-        
-        $('#start-stop-clock').click(clock.start);
-    });
-    
-    var clock = {
-        startDate: null,
-        timer: null,
-        start: function() {
-            if (clock.timer) {
-                clearInterval(clock.timer);
-                clock.timer = null;
-                $('#start-stop-clock').text('Start Timer');
-                return;
-            }
-            clock.startDate = new Date();
-            clock.timer = setInterval(clock.update, 1000);
-            $('#start-stop-clock').text('Stop Timer');
-            clock.update();
-        },
-        update: function() {
-            var now = new Date();
-            var ms = now.getTime() - clock.startDate.getTime();
-            var milliseconds = ms % 1000;
-            milliseconds = "" + milliseconds;
-            while (milliseconds.length < 3) milliseconds += '0';
-            var x = Math.floor(ms / 1000);
-            var seconds = x % 60;
-            if (seconds < 10) seconds = '0' + seconds;
-            x = Math.floor(x / 60);
-            var minutes = x % 60;
-            if (minutes < 10) minutes = '0' + minutes;
-            x = Math.floor(x / 60);
-            var hours = x;
-            if (hours < 10) hours = '0' + hours;
-            $('#clock').text(hours + ":" + minutes + ":" + seconds);
-            $('#time').text(now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds());
-        },
-    };
-</script>
-<a href="#" id="prev">&lt;&lt;</a>
-<span id="current-slide"></span>
-<a href="#" id="next">&gt;&gt;</a><br />
-<span id="clock"></span><br />
-<span id="time"></span><br />
-<a href="#" id="start-stop-clock">Start Timer</a><br />
-<div id="notes">
-</div>
-<p id="cur_frame_label">Current Slide</p>
-<iframe id="cur_frame" scrolling="no"></iframe>
-<p id="next_frame_label">Next Slide</p>
-<iframe id="next_frame" scrolling="no"></iframe>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css" />
+        <script src="jquery.js"></script>
+        <script src="client.js"></script>
+        <title>Deck Remote Client</title>
+    </head>
+    <body>
+        <p>
+            <a href="#" id="prev" name="prev">&lt;&lt;</a> <span id="current-slide"></span> <a href="#" id="next" name="next">&gt;&gt;</a><br>
+            <span id="clock"></span><br>
+            <span id="time"></span><br>
+            <a href="#" id="start-stop-clock" name="start-stop-clock">Start Timer</a><br>
+        </p>
+        <div id="notes"></div>
+        <p id="cur_frame_label">
+            Current Slide
+        </p>
+        <p>
+            <iframe id="cur_frame" scrolling="no"></iframe>
+        </p>
+        <p id="next_frame_label">
+            Next Slide
+        </p>
+        <p>
+            <iframe id="next_frame" scrolling="no"></iframe>
+        </p>
+    </body>
+</html>

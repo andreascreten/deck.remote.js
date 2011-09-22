@@ -1,8 +1,8 @@
 deck.js remote
-=============
+==============
 
 Usage
--------------
+-----
 
 Before you start: **Make sure you init and update all submodules.**
 
@@ -19,17 +19,35 @@ Before you start: **Make sure you init and update all submodules.**
 		port: 8333
 	});
 	```
-
+1. If you change the port in the code above, also change it in deck-remote-server/main.js and deck-remote-client/client.js
 1. Before starting the presentation run the node.js daemon located in deck-remote-server/main.js.
 1. Once the daemon is running, open your presentation and the client (deck-remote-client/index.html) in your browser. Changes made on the client should reflect on the server, and the other way around.
 
 *At the moment it has only been tested with Firefox & Chrome.*
 
+Different instances
+-------------------
+
+###Master deck
+
+When you open your deck normally it is acting as a *master deck*. The actions you do will be propagated to the server and streamed to all other instances of your deck and the remote client.
+
+###Slave deck
+
+When you add `#slave` to the url of your deck, it will act as a *slave deck*. These decks only listen to the server, they don't propagate their status.
+
 Todo
--------------
+----
 
 - Allow ip and port configuration in a general way (now needs to be set in both server and client)
+- Cleanup the deck-remote-client code
 - Improving client UI
 - Test more browsers
 - Mobile client version (This should be part of the new UI)
 - Write technical documentation
+
+Contributors
+------------
+
+- Sebastian Waisbrot ([@seppo0010](http://twitter.com/seppo0010))
+- Andreas Creten ([@andreascreten](http://twitter.com/andreascreten))

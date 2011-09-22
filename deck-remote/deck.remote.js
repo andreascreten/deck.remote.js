@@ -1,9 +1,7 @@
 // Function to setup the remote
 var DeckRemote = function(config) {
     // Overwrite the default config
-    if(config) {
-        DeckRemoteWrapper.config = config;
-    }
+    DeckRemoteWrapper.config = $.extend({}, DeckRemoteWrapper.config, config);
     
     // Dynamically include the socket.io script
     var head = document.getElementsByTagName('head')[0];
@@ -13,7 +11,7 @@ var DeckRemote = function(config) {
     head.appendChild(script);
     
     // Connect to the server when the socket is loaded
-    script.onload= function() {
+    script.onload = function() {
         // Check if it's a mirror
         if (window.location.href.indexOf('#mirror') != -1) {
             DeckRemoteWrapper.mirror.connect(false);
